@@ -17,7 +17,6 @@ async function upSync() {
         columnIds: ["_recordId"],
       }).toString();
 
-      console.log("fuck", `${API_URL}/views/${VIEW_ID}/records?${query}`);
       const gridRecordsResponse = await axios.get(
         `${API_URL}/views/${VIEW_ID}/records?${query}`,
         {
