@@ -8,9 +8,12 @@ import { COUNTRIES } from "./countries";
 function App() {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
-  const changeLangue = React.useCallback((code) => {
-    i18n.changeLanguage(code?.toLowerCase());
-  }, []);
+  const changeLangue = React.useCallback(
+    (code) => {
+      i18n.changeLanguage(code?.toLowerCase());
+    },
+    [i18n]
+  );
 
   return (
     <React.Fragment>
