@@ -1,17 +1,24 @@
 const axios = require("axios");
 const fs = require("fs");
-const { API_URL, API_KEY, VIEW_ID, COLUMN_IDS } = require("./config");
+const {
+  API_URL,
+  API_KEY,
+  VIEW_ID,
+  COLUMN_IDS,
+  MAX_LIMIT,
+} = require("./config");
 
-let totalRecord = 0;
-let OFFSET = 0;
-const MAX_LIMIT = 1000;
-
+/**
+ * Explain: Some people can add more placeholder in grid. So this action will sync records into *.json files.
+ */
 async function downSync() {
   try {
     let records = [];
+    let totalRecord = 0;
+    let offset = 0;
 
     do {
-      const params = { limit: MAX_LIMIT, offset: OFFSET };
+      const params = { limit: MAX_LIMIT, offset };
       const query = new URLSearchParams({
         page: JSON.stringify(params),
       }).toString();
@@ -24,24 +31,25 @@ async function downSync() {
       );
       records.push(...res?.data);
       totalRecord = parseInt(res.headers["x-total-count"]);
-      OFFSET = OFFSET + MAX_LIMIT;
-    } while (OFFSET < totalRecord);
+      offset = offset + MAX_LIMIT;
+    } while (offset < totalRecord);
 
-    Object.values(COLUMN_IDS).forEach((lang) => {
+    const columnIds = Object.values(COLUMN_IDS);
+    for await (const columnId of columnIds) {
       const translationObject = {};
       records.forEach((record) => {
         const translationKey = record?.id;
-        const cell = record?.cells?.find((cell) => cell?.columnId === lang);
+        const cell = record?.cells?.find((cell) => cell?.columnId === columnId);
         const translationValue = cell?.value;
         if (translationValue) {
           translationObject[translationKey] = translationValue;
         }
       });
-      fs.writeFileSync(
-        `src/i18next/${lang}.json`,
+      await fs.writeFileSync(
+        `src/i18next/${columnId}.json`,
         JSON.stringify(translationObject)
       );
-    });
+    }
   } catch (error) {
     console.log(error.message);
   }
